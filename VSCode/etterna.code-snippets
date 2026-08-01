@@ -1,0 +1,254 @@
+{
+	// Place your global snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	//
+	//	Macros for autocomplete in VSCode
+	//
+	//		example usage:
+	//		want to create a MouseDownCommand that checks for left mouse button input?
+	//
+	//		type out "moused" -> enter -> it spawns before you with new cursor position
+	//
+	//		this saves a lot of time but you may need to tweak the macros to your own liking
+	// Example:
+
+	//actor commands
+	"Create InitCommand": {
+		"scope": "lua",
+		"prefix": "InitCommand",
+		"body": [
+			"InitCommand = function(self)",
+			"\t$1",
+			"end,",
+			"",
+		],
+		"description": "create InitCommand",
+	},
+	"Create OnCommand": {
+		"scope": "lua",
+		"prefix": "Oncommand",
+		"body": [
+			"OnCommand = function(self)",
+			"\t$1",
+			"end,",
+			"",
+		],
+		"description": "create OnCommand",
+	},
+	"Create MouseDownCommand": {
+		"scope": "lua",
+		"prefix": "MouseDownCommand",
+		"body": [
+			"MouseDownCommand = function(self, params)",
+			"\tif params.event == \"DeviceButton_left mouse button\" then",
+			"\t\t$1",
+			"\tend",
+			"end,",
+			"",
+		],
+		"description": "create MouseDownCommand",
+	},
+
+	"Create MouseOverCommand": {
+		"scope": "lua",
+		"prefix": "MouseOverCommand",
+		"body": [
+			"MouseOverCommand = function(self, params)",
+			"\tif isOver(self) then",
+			"\t\t$1",
+			"\tend",
+			"end,",
+			"",
+		],
+		"description": "create MouseOverCommand",
+	},
+
+	"Create MouseOutCommand": {
+		"scope": "lua",
+		"prefix": "MouseOutCommand",
+		"body": [
+			"MouseOutCommand = function(self, params)",
+			"\t\t$1",
+			"end,",
+			"",
+		],
+		"description": "create MouseOutCommand",
+	},
+
+	"Create hotPlugTextureWithFallback": {
+		"scope": "lua",
+		"prefix": "hotPlugTextureWithFallback",
+		"body": [
+			"hotPlugTextureWithFallback(\"$1\",",
+			"\t\t\t\t\t\t\t\"SharedElements/$2\", \"png\"))$3 .. {",
+		],
+		"description": "create hotPlugTextureWithFallback",
+	},
+
+	// actors
+	"Create ActorFrame": {
+		"scope": "lua",
+		"prefix": "ActorFrame",
+		"body": [
+			"Def.ActorFrame {",
+			"\tName = \"$1\",",
+			"\tInitCommand = function(self)",
+			"\t\t$2",
+			"\tend,",
+			"}"
+		],
+		"description": "create ActorFrame",
+	},
+
+	"Create Sprite": {
+		"scope": "lua",
+		"prefix": "Sprite",
+		"body": [
+			"Def.Sprite {",
+			"\tName = $1",
+			"\tInitCommand = function(self)",
+			"\t\tself:$2",
+			"\tend,",
+			"\tOnCommand = function(self)",
+			"\t\tself:$3",
+			"\tend,",
+			"},"
+		],
+		"description": "create Sprite",
+	},
+
+	"Create UIElements.SpriteButton": {
+		"scope": "lua",
+		"prefix": "Sprite",
+		"body": [
+			"UIElements.SpriteButton(1, 1, hotPlugTexture(\"$1\", \"png\")) .. {",
+			"\tName = $2,",
+			"\tInitCommand = function(self)",
+			"\t\tself:xy($3)",
+			"\t\tself:zoom(tweakGlobals.realScale)",
+			"\tend,",
+			"\tOnCommand = function(self)",
+			"\t\t$4",
+			"\tend,",
+			"},"
+		],
+		"description": "create SpriteButton",
+	},
+
+	"Autocomplete positionTable": {
+		"scope": "lua",
+		"prefix": "positionTable",
+		"body": [
+			"positionTable."
+		],
+		"description": "type out positionTable.",
+	},
+
+	"Autocomplete function": {
+		"scope": "lua",
+		"prefix": "func",
+		"body": [
+			"= function(self)",
+		],
+		"description": "lazy function typing",
+
+	},
+
+	//tweaktown skinConfig
+	"Create skinConfig item": {
+		"scope": "lua",
+		"prefix": "skinCon",
+		"body": [
+			"skinConfig[\"$1\"][\"$2\"]",
+		],
+		"description": "type skinConfig value easily."
+	},
+
+	//tweaktown skinConfig colour command
+	"Create diffuse with skinConfig": {
+		"scope": "lua",
+		"prefix": "skinColor",
+		"body": "self:diffuse(color(skinConfig[\"$1\"][\"$2\"]))",
+		"description": "type diffuse from skinConfig easily",
+	},
+
+	//tweaktown quick realScale
+	"Create tweakGlobals.realScale": {
+		"scope": "lua",
+		"prefix": "realScale",
+		"body": "tweakGlobals.realScale",
+		"description": "avoid writing tweakGlobals"
+	},
+
+	//quick diffuse
+	"Create diffuse(color)": {
+		"scope": "lua",
+		"prefix": "diffuse",
+		"body": "diffuse(color(\"$1\")",
+		"description": "less keystrokes"
+	},
+
+	//quick diffusealpha
+	"Create diffusealpha()": {
+		"scope": "lua",
+		"prefix": "difa",
+		"body": "diffusealpha($1)",
+		"description": "less keystrokes"
+	},
+
+	//quick parent reference
+	"Reference parent frame": {
+		"scope": "lua",
+		"prefix": "parf",
+		"body": "local frame = self:GetParent()",
+		"description": "less keystrokes"
+	},
+
+	//quick wrapper actorframe start
+	"Wrapper frame start": {
+		"scope": "lua",
+		"prefix": "wrap",
+		"body": [
+			"Def.ActorFrame {",
+			"\tName = $1,",
+			"",
+			],
+		"description": "faster wrap"
+	},
+
+	//quick visible(true)
+	"Visible TRUE": {
+		"scope": "lua",
+		"prefix": "visitrue",
+		"body": "self:visible(true)",
+		"description": "less keystrokes"
+	},
+
+	//quick visible(false)
+	"Visible FALSE": {
+		"scope": "lua",
+		"prefix": "visifalse",
+		"body": "self:visible(false)",
+		"description": "less keystrokes"
+	},
+
+	//quick screen table add
+	"Screen table add": {
+		"scope": "lua",
+		"prefix": "tad",
+		"body": "t[#t + 1] = ",
+		"description": "less keystrokes"
+	},
+
+	//quick xy w/ positionTable
+	"PositionTable XY": {
+		"scope": "lua",
+		"prefix": "pxy",
+		"body": "self:xy(positionTable.$1, positionTable.$2",
+		"description": "less keystrokes"
+	},
+}
