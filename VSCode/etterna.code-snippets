@@ -248,7 +248,32 @@
 	"PositionTable XY": {
 		"scope": "lua",
 		"prefix": "pxy",
-		"body": "self:xy(positionTable.$1, positionTable.$2",
+		"body": "self:xy(positionTable.$1, positionTable.$2)",
 		"description": "less keystrokes"
+	},
+
+	//quick normal font
+	"LoadFont normal": {
+		"scope": "lua",
+		"prefix": "loadfont",
+		"body": [
+			"LoadFont(\"Common Normal\") .. {",
+			"\tName = $1,",
+			"\tInitCommand = function(self)",
+			"\t\t$2",
+			"\tend,",
+			"\tOnCommand = function(self)",
+			"\t\t$3",
+			"\tend,",
+			"},"
+			],
+		"description": "less keystrokes"
+		},
+
+	"makeDynamicFrames default": {
+		"scope": "lua",
+		"prefix": "makeF",
+		"body": "makeDynamicFrames(self, skinConfig[\"General\"][\"DefaultAnimationFPS\"])",
+		"description": "apply default FPS to sprite with dynamic frames"
 	},
 }
