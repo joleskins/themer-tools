@@ -1,0 +1,314 @@
+ADDING A CUSTOMIZE GAMEPLAY ELEMENT CHECKLIST(TWEAKTOWN)
+
+1:
+- Decide on an element name - as an example we'll call it "GameplayGrade" in this guide
+
+2:
+- in "Scripts/02 CustomizeGameplay.lua" "loadValuesTable()" function,
+add X, Y and Zoom values for the new element. in this case that's:
+
+MovableValues.CurrentGradeX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].CurrentGradeX
+MovableValues.CurrentGradeY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].CurrentGradeY
+MovableValues.CurrentGradeZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].CurrentGradeZoom
+
+3:
+- now add X and Y entries in "Scripts/01 player_config.lua" "defaultGameplayCoordinatesxK" tables. there's one for each gamemode
+so make sure to add the new X & Y values to each table. DO NOT ADD ZOOM TO THESE. just define default X/Y positions
+
+4:
+- in the same file, find the "defaultGameplaySizes" table and add the zoom value, so in this case "CurrentGradeZoom"
+
+5:
+- go back to "Scripts/02 CustomizeGameplay.lua" and find the "Movable" table. this is where we set up the customize behaviour.
+some elements require different ways to set this up, but for something simple with X/Y/Zoom you can paste the examples in the table.
+
+note that position and zoom need to be two separate entries in the table!
+also, adjust the "CurrentGrade" texts to fit your element name.
+this specifies the lua actor and the keybind which we'll both go define later
+
+position code:
+
+["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition] = {
+	name = "CurrentGrade",
+	textHeader = "Grade position:",
+	element = {},
+	properties = {"X", "Y"},
+	elementTree = "GameplayXYCoordinates",
+	DeviceButton_up = {
+		property = "Y",
+		inc = -1
+	},
+	DeviceButton_down = {
+		property = "Y",
+		inc = 1
+	},
+	DeviceButton_left = {
+		property = "X",
+		inc = -1
+	},
+	DeviceButton_right = {
+		property = "X",
+		inc = 1
+	}
+},
+
+
+zoom code:
+
+["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize] = {
+	name = "CurrentGrade",
+	textHeader = "Grade size:",
+	element = {},
+	properties = {"Zoom"},
+	elementTree = "GameplaySizes",
+	DeviceButton_up = {
+		property = "Zoom",
+		inc = 0.01
+	},
+	DeviceButton_down = {
+		property = "Zoom",
+		inc = -0.01
+	}
+},
+
+
+6:
+- after adding these, head over to "Scripts/00 tweaktown_binds.lua" and find the long list of customize entries.
+this is where you can change bind and decide the bind for your new element, but make sure there are no
+repeats!
+
+7:
+- once added, we can head over to "BGAnimations/ScreenGameplay overlay/WifeJudgmentSpotting.lua". you can
+also add the element in a separate file, but if it needs to react to things in gameplay, it's easier to
+add it in this big file.
+
+8:
+- look for a bunch of "enabledErrorBar", "enabledMiniBar" etc. things and then add your new element here. in
+this example, it's:
+
+local enabledCurrentGrade = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CurrentGrade
+
+9:
+- next, we need to add the actual element in the code. this might be a bit much if you haven't done this before!
+first, keep the draw order in mind - things written first in the file generally get drawn first, so if there's
+a specific element you want yours to be in front of or behind, then write the following code before or after that
+element's code. in this example, i want "CurrentGrade" to be behind accuracy numbers, or "DisplayPercent" as the
+internal name. so, the following code is put just before the accuracy.
+
+things you'll need:
+	- A: an actorframe for your element that you give a name(in this example, it's "local currentGrade")
+	- B: depending on the thing you're adding, either a LoadFont() or Def.Sprite() actor inside the frame, or multiple actors if you need
+	- C: checking for if you're in customizegameplay(with variable "allowedCustomization")
+	- D: setting values to the new element's Movable table that were added in step 5
+	- E: adding a MovableBorder() to the ACTORFRAME. note, NOT the font or sprite actor!!
+	- F: setting initial scale and position for the ACTORFRAME
+	- G: adding the new actorframe to the file's main "t" table(in this example, it's "t[#t + 1] = currentGrade")
+	- H: test if it works, and if it does, have fun with coding the specifics of your new element. i can't handhold you with this one, sorry
+
+each step will be tackled in sequence below.
+
+9A:
+--add actorframe base code with a blank InitCommand.
+--(adjust with your chosen names. there is no strict requirement for what you use)
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		--
+	end,
+}
+
+9B:
+--add sprite or loadfont to the frame.
+--in case of sprite, you can point to a texture in the "tweaktown/Textures/Gameplay" folder with hotPlugTexture()
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		--
+	end,
+
+	--NEW IN THIS STEP:
+	--this example falls back to the "Grades" folder to allow a gameplay override texture.
+	--in your case, you probably just need to use hotPlugTexture("Gameplay/yourtexturenamehere", "png"),
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+}
+
+9C:
+--now inside the InitCommand, check if customizeGameplay is enabled.
+--we'll specify what to do inside the if statement later
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		--NEW IN THIS STEP:
+		if(allowedCustomization) then
+			--
+		else
+			--
+		end,
+	end,
+
+
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+}
+
+9D:
+--when customize gameplay is ON, we want to specify the Movable things
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		if(allowedCustomization) then
+			--NEW IN THIS STEP:
+			--specify that the CustomizeCurrentGradePosition and CustomizeCurrentGradeSize binds
+			--should point to this specific element
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].element = self
+			--send enabled status of the element to the Movable table
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].condition = enabledCurrentGrade
+			--specify the border for both the position and size
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].Border = self:GetChild("Border")
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].Border = self:GetChild("Border")
+			--in tweaktown, set diffusealpha(1) to 1 when in customize so it's visible immediately.
+			--normally there's a delay for fade-in but it should be ignored in customize
+			self:diffusealpha(1)
+		else
+			--ALSO NEW IN THIS STEP:
+			--set diffusealpha to 0 when not in customize, so the normal fade-in can work as intended
+			self:diffusealpha(0)
+		end,
+	end,
+
+
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+}
+
+9E:
+--now add the MovableBorder() element to the ACTORFRAME.
+--pay attention to where it's added.
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		if(allowedCustomization) then
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].Border = self:GetChild("Border")
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].Border = self:GetChild("Border")
+			self:diffusealpha(1)
+		else
+			self:diffusealpha(0)
+		end,
+	end,
+
+
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+
+	--NEW IN THIS STEP:
+	--as the last code in the actorframe, add this for the border.
+	--the first 2 numbers are width and height for the border, and the third is border thickness.
+	--don't worry about the last 2 as they're related to alignment
+	MovableBorder(32, 32, 1, 0, 0)
+}
+
+9F:
+--also, don't forget to set "zoom" and "x/y" values in the ACTORFRAME's InitCommand.
+--do not set size in the sprite or font you're using. scale and position the actorframe!
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		if(allowedCustomization) then
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].Border = self:GetChild("Border")
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].Border = self:GetChild("Border")
+			self:diffusealpha(1)
+		else
+			self:diffusealpha(0)
+		end,
+
+		--NEW IN THIS STEP:
+		--this always needs to happen so we're writing it after the if statement
+		--set size and position based on saved playerConfig values.
+		--adjust to match your naming
+		self:zoom(MovableValues.CurrentGradeZoom)
+		self:xy(MovableValues.CurrentGradeX, MovableValues.CurrentGradeY)
+	end,
+
+
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+
+	MovableBorder(32, 32, 1, 0, 0)
+}
+
+
+9G:
+--with everything added, it should be ready to be added to "t", the main frame in the file.
+--(look at the bottom of the code snippet)
+local currentGrade = Def.ActorFrame {
+	Name = "GameplayCurrentGrade",
+	InitCommand = function(self)
+		if(allowedCustomization) then
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].element = self
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].condition = enabledCurrentGrade
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradePosition].Border = self:GetChild("Border")
+			Movable["DeviceButton_" .. tweakBinds.CustomizeCurrentGradeSize].Border = self:GetChild("Border")
+			self:diffusealpha(1)
+		else
+			self:diffusealpha(0)
+		end,
+
+		self:zoom(MovableValues.CurrentGradeZoom)
+		self:xy(MovableValues.CurrentGradeX, MovableValues.CurrentGradeY)
+	end,
+
+
+	Def.Sprite {
+		Name = "CurrentGrade",
+		Texture = hotPlugTextureWithFallback("Gameplay/grade-nograde-small",
+											"Grades/grade-nograde-small", "png"),
+		
+	},
+
+	MovableBorder(32, 32, 1, 0, 0)
+}
+
+--NEW IN THIS STEP:
+--add your new frame(in this case "currentGrade") to "t", the main actorframe in this file.
+--but only if the element is enabled!
+if enabledCurrentGrade then
+	t[#t + 1] = currentGrade
+end
+
+9H:
+i can't tell you what to do with the element beyond this point. if everything works up to this point, you've successfully
+added a new element and you can start making it behave in ways you want, like reacting to accuracy, judgments,
+or whatever you want
